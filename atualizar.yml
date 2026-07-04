@@ -1,0 +1,38 @@
+name: Atualizar taxas
+
+on:
+  schedule:
+    # 11h15 BRT (14:15 UTC) e 14h00 BRT (17:00 UTC), seg-sex
+    - cron: "15 14 * * 1-5"
+    - cron: "0 17 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Gerar dados.json
+        run: python atualizar.py
+
+      - name: Commit e push se houver mudanca
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain docs/dados.json)" ]; then
+            git add docs/dados.json
+            git commit -m "chore: atualiza taxas ($(date -u +%Y-%m-%dT%H:%MZ))"
+            git push
+          else
+            echo "Sem mudancas em docs/dados.json"
+          fi
