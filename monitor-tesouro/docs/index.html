@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitor Tesouro Direto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#F2F4F7;
+  --ficha:#FFFFFF;
+  --tinta:#0A1F44;
+  --tinta-2:#41506E;
+  --tinta-3:#8B95A8;
+  --linha:#D8DDE6;
+  --alta:#1B7A4A;
+  --alta-bg:#E5F2EB;
+  --queda:#CC092F;
+  --queda-bg:#FBE9ED;
+  --meta:#B7791F;
+  --meta-bg:#FCF3E3;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --sans:"IBM Plex Sans",system-ui,sans-serif;
+  --cond:"IBM Plex Sans Condensed",var(--sans);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--papel);color:var(--tinta);font-family:var(--sans);font-size:15px;line-height:1.45}
+a{color:inherit}
+
+header{background:var(--tinta);color:#fff;padding:14px 0}
+.wrap{max-width:1060px;margin:0 auto;padding:0 20px}
+.header-row{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
+h1{font-family:var(--cond);font-weight:700;font-size:1.35rem;letter-spacing:.02em;text-transform:uppercase}
+h1 small{font-weight:500;color:#9FB0CE;text-transform:none;letter-spacing:0;font-size:.8rem;margin-left:10px}
+.database{font-family:var(--mono);font-size:.8rem;color:#C7D2E6}
+.database b{color:#fff}
+
+main{padding:26px 0 10px}
+.ficha{background:var(--ficha);border:1px solid var(--linha);border-radius:10px;margin-bottom:22px;overflow:hidden}
+.ficha.meta-atingida{border-color:var(--meta);box-shadow:0 0 0 3px var(--meta-bg)}
+
+.f-topo{display:grid;grid-template-columns:minmax(210px,1.1fr) repeat(4,minmax(105px,.75fr));gap:8px;padding:18px 22px 14px;border-bottom:1px solid var(--linha);align-items:end}
+.f-nome h2{font-family:var(--cond);font-size:1.15rem;font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+.f-nome .venc{font-size:.78rem;color:var(--tinta-3);margin-top:2px}
+.badge-meta{display:none;font-family:var(--cond);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--meta);background:var(--meta-bg);border:1px solid var(--meta);border-radius:4px;padding:2px 8px;margin-top:6px}
+.meta-atingida .badge-meta{display:inline-block}
+
+.metric .rot{font-family:var(--cond);font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--tinta-3)}
+.metric .val{font-family:var(--mono);font-weight:600;font-size:1.05rem;margin-top:2px;white-space:nowrap}
+.metric.principal .val{font-size:1.9rem;line-height:1.05}
+.metric .pref{font-size:.65em;color:var(--tinta-2);font-weight:500}
+.var{font-family:var(--mono);font-size:.78rem;font-weight:500;border-radius:4px;padding:1px 6px;white-space:nowrap}
+.var.up{color:var(--alta);background:var(--alta-bg)}
+.var.down{color:var(--queda);background:var(--queda-bg)}
+.var.flat{color:var(--tinta-3);background:var(--papel)}
+
+.f-corpo{padding:14px 22px 18px}
+.chart-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.ranges{display:flex;gap:4px}
+.ranges button{font-family:var(--cond);font-size:.72rem;font-weight:600;letter-spacing:.05em;color:var(--tinta-2);background:none;border:1px solid var(--linha);border-radius:5px;padding:3px 10px;cursor:pointer}
+.ranges button.on{background:var(--tinta);border-color:var(--tinta);color:#fff}
+.ranges button:focus-visible{outline:2px solid var(--tinta);outline-offset:2px}
+.hover-info{font-family:var(--mono);font-size:.76rem;color:var(--tinta-2);min-height:1.2em}
+.grafico{width:100%;height:190px;display:block;touch-action:pan-y}
+
+.f-alerta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 22px;border-top:1px dashed var(--linha);background:#FAFBFC;font-size:.82rem;color:var(--tinta-2)}
+.f-alerta label{font-family:var(--cond);font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:.7rem}
+.f-alerta input{font-family:var(--mono);font-size:.85rem;width:90px;padding:4px 8px;border:1px solid var(--linha);border-radius:5px;color:var(--tinta)}
+.f-alerta input:focus-visible{outline:2px solid var(--tinta);outline-offset:1px}
+.f-alerta .status{font-family:var(--mono);font-size:.75rem}
+
+footer{padding:14px 0 34px;color:var(--tinta-3);font-size:.78rem}
+footer p{margin-bottom:4px}
+#erro{display:none;background:var(--queda-bg);color:var(--queda);border:1px solid var(--queda);border-radius:8px;padding:14px 18px;margin-bottom:20px;font-size:.9rem}
+
+@media(max-width:760px){
+  .f-topo{grid-template-columns:1fr 1fr;gap:14px 8px}
+  .f-nome{grid-column:1/-1}
+  .metric.principal .val{font-size:1.6rem}
+}
+@media(prefers-reduced-motion:no-preference){
+  .ficha{transition:box-shadow .2s,border-color .2s}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap header-row">
+    <h1>Monitor Tesouro Direto<small>taxas de compra e resgate</small></h1>
+    <div class="database" id="database">carregando…</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="erro"></div>
+  <div id="fichas"></div>
+</main>
+
+<footer class="wrap">
+  <p><b>Fonte:</b> Tesouro Transparente / Secretaria do Tesouro Nacional — dados abertos oficiais (taxas de abertura, atualização em dias úteis, defasagem de ~1 dia útil).</p>
+  <p>Taxa de compra = rentabilidade ao investir. Taxa de resgate = venda antecipada. Renda+ 2065: conversão em 15/12/2065; o dataset registra o vencimento da última parcela (15/12/2084). Variações em bps sobre a taxa de compra.</p>
+</footer>
+
+<script>
+"use strict";
+const fmtBR = n => n.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtData = iso => { const [a,m,d]=iso.split("-"); return `${d}/${m}/${a}`; };
+const bps = x => { const v=Math.round(x*100); const s=v>0?"+":""; return `${s}${v} bps`; };
+const RANGES = [["3M",92],["6M",184],["1A",366],["Tudo",Infinity]];
+
+function varSpan(delta,titulo){
+  if(delta===null) return "";
+  const cls = Math.round(delta*100)===0 ? "flat" : (delta>0?"up":"down");
+  const seta = cls==="flat" ? "•" : (delta>0?"▲":"▼");
+  return `<span class="var ${cls}" title="${titulo}">${seta} ${bps(delta)}</span>`;
+}
+
+function achaPassado(hist,dias){
+  const alvo = new Date(hist[hist.length-1].d);
+  alvo.setDate(alvo.getDate()-dias);
+  for(let i=hist.length-1;i>=0;i--) if(new Date(hist[i].d)<=alvo) return hist[i];
+  return null;
+}
+
+function desenhaGrafico(svg,info,hist,dias){
+  const corte = dias===Infinity ? hist : (()=>{ const p=achaPassado(hist,dias); const i=p?hist.indexOf(p):0; return hist.slice(i); })();
+  const dados = corte.length>=2 ? corte : hist;
+  const W=1000,H=190,PL=52,PR=10,PT=12,PB=24;
+  const xs=dados.map((_,i)=>PL+(W-PL-PR)*i/(dados.length-1));
+  const ys=dados.map(p=>p.tc);
+  let min=Math.min(...ys),max=Math.max(...ys);
+  const pad=Math.max((max-min)*0.12,0.05); min-=pad; max+=pad;
+  const Y=v=>PT+(H-PT-PB)*(1-(v-min)/(max-min));
+
+  let g="";
+  const nTicks=4;
+  for(let i=0;i<=nTicks;i++){
+    const v=min+(max-min)*i/nTicks, y=Y(v);
+    g+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="var(--linha)" stroke-width="1"/>`;
+    g+=`<text x="${PL-8}" y="${y+3}" text-anchor="end" font-size="11" fill="var(--tinta-3)" font-family="var(--mono)">${fmtBR(v)}</text>`;
+  }
+  const nX=Math.min(5,dados.length);
+  for(let i=0;i<nX;i++){
+    const idx=Math.round((dados.length-1)*i/(nX-1));
+    g+=`<text x="${xs[idx]}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--tinta-3)" font-family="var(--mono)">${fmtData(dados[idx].d).slice(0,5)}/${dados[idx].d.slice(2,4)}</text>`;
+  }
+  const linha=dados.map((p,i)=>`${i?"L":"M"}${xs[i].toFixed(1)},${Y(p.tc).toFixed(1)}`).join("");
+  const area=`${linha}L${xs[xs.length-1].toFixed(1)},${H-PB}L${xs[0].toFixed(1)},${H-PB}Z`;
+  g+=`<path d="${area}" fill="var(--tinta)" opacity="0.07"/>`;
+  g+=`<path d="${linha}" fill="none" stroke="var(--tinta)" stroke-width="2"/>`;
+  g+=`<g class="cursor" style="display:none"><line y1="${PT}" y2="${H-PB}" stroke="var(--tinta-2)" stroke-dasharray="3,3"/><circle r="4" fill="var(--tinta)"/></g>`;
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  svg.innerHTML=g;
+
+  const cursor=()=>svg.querySelector(".cursor");
+  const mover=ev=>{
+    const r=svg.getBoundingClientRect();
+    const cx=(ev.touches?ev.touches[0].clientX:ev.clientX);
+    const x=(cx-r.left)/r.width*W;
+    let i=Math.round((x-PL)/(W-PL-PR)*(dados.length-1));
+    i=Math.max(0,Math.min(dados.length-1,i));
+    const c=cursor();
+    c.style.display="";
+    c.querySelector("line").setAttribute("x1",xs[i]); c.querySelector("line").setAttribute("x2",xs[i]);
+    c.querySelector("circle").setAttribute("cx",xs[i]); c.querySelector("circle").setAttribute("cy",Y(dados[i].tc));
+    info.textContent=`${fmtData(dados[i].d)} — compra ${fmtBR(dados[i].tc)}% · resgate ${fmtBR(dados[i].tv)}% · PU R$ ${fmtBR(dados[i].puc)}`;
+  };
+  svg.onmousemove=mover; svg.ontouchstart=mover; svg.ontouchmove=mover;
+  svg.onmouseleave=()=>{cursor().style.display="none";info.textContent="";};
+}
+
+function montaFicha(t){
+  const h=t.historico, atual=h[h.length-1], ant=h.length>1?h[h.length-2]:null;
+  const m30=achaPassado(h,30);
+  const ano=h.filter(p=>new Date(p.d)>=new Date(new Date(atual.d).getTime()-366*864e5)).map(p=>p.tc);
+  const pref=t.indexador==="IPCA+"?`<span class="pref">IPCA + </span>`:"";
+
+  const el=document.createElement("section");
+  el.className="ficha"; el.id=t.id;
+  el.innerHTML=`
+  <div class="f-topo">
+    <div class="f-nome">
+      <h2>${t.nome}</h2>
+      <div class="venc">Vencimento: ${t.vencimento} · data-base ${fmtData(atual.d)}</div>
+      <span class="badge-meta">Meta de taxa atingida</span>
+    </div>
+    <div class="metric principal">
+      <div class="rot">Taxa compra (a.a.)</div>
+      <div class="val">${pref}${fmtBR(atual.tc)}%</div>
+      <div style="margin-top:4px">${varSpan(ant?atual.tc-ant.tc:null,"vs dia útil anterior")} ${varSpan(m30?atual.tc-m30.tc:null,"vs ~30 dias")}</div>
+    </div>
+    <div class="metric">
+      <div class="rot">Taxa resgate (a.a.)</div>
+      <div class="val">${pref}${fmtBR(atual.tv)}%</div>
+    </div>
+    <div class="metric">
+      <div class="rot">PU compra</div>
+      <div class="val">R$ ${fmtBR(atual.puc)}</div>
+    </div>
+    <div class="metric">
+      <div class="rot">Mín–Máx 52 sem.</div>
+      <div class="val" style="font-size:.9rem">${fmtBR(Math.min(...ano))} – ${fmtBR(Math.max(...ano))}</div>
+    </div>
+  </div>
+  <div class="f-corpo">
+    <div class="chart-bar">
+      <div class="ranges"></div>
+      <div class="hover-info"></div>
+    </div>
+    <svg class="grafico" role="img" aria-label="Histórico da taxa de compra de ${t.nome}"></svg>
+  </div>
+  <div class="f-alerta">
+    <label for="al-${t.id}">Alerta — avisar se taxa compra ≥</label>
+    <input id="al-${t.id}" type="number" step="0.01" inputmode="decimal" placeholder="ex: ${fmtBR(atual.tc+0.2).replace(',','.')}">
+    <span>% a.a.</span>
+    <span class="status"></span>
+  </div>`;
+
+  const svg=el.querySelector(".grafico"), info=el.querySelector(".hover-info");
+  const rangesEl=el.querySelector(".ranges");
+  RANGES.forEach(([rot,dias],i)=>{
+    const b=document.createElement("button");
+    b.textContent=rot; if(i===2)b.classList.add("on");
+    b.onclick=()=>{rangesEl.querySelectorAll("button").forEach(x=>x.classList.remove("on"));b.classList.add("on");desenhaGrafico(svg,info,h,dias);};
+    rangesEl.appendChild(b);
+  });
+  desenhaGrafico(svg,info,h,366);
+
+  // Alerta (persistido no navegador)
+  const chave=`meta:${t.id}`, input=el.querySelector("input"), status=el.querySelector(".status");
+  const avalia=()=>{
+    const v=parseFloat(input.value);
+    if(!isFinite(v)){el.classList.remove("meta-atingida");status.textContent="";localStorage.removeItem(chave);return;}
+    localStorage.setItem(chave,String(v));
+    const ok=atual.tc>=v;
+    el.classList.toggle("meta-atingida",ok);
+    status.textContent=ok?`✔ atual ${fmtBR(atual.tc)}% ≥ meta ${fmtBR(v)}%`:`atual ${fmtBR(atual.tc)}% < meta ${fmtBR(v)}%`;
+  };
+  const salvo=localStorage.getItem(chave);
+  if(salvo){input.value=salvo;}
+  input.addEventListener("input",avalia);
+  avalia();
+  return el;
+}
+
+(async()=>{
+  try{
+    const r=await fetch(`dados.json?v=${Date.now()}`);
+    if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    const dados=await r.json();
+    const ult=dados.titulos.map(t=>t.historico[t.historico.length-1].d).sort().pop();
+    document.getElementById("database").innerHTML=`data-base <b>${fmtData(ult)}</b> · gerado ${new Date(dados.atualizado_em).toLocaleString("pt-BR")}`;
+    const cont=document.getElementById("fichas");
+    dados.titulos.forEach(t=>cont.appendChild(montaFicha(t)));
+  }catch(e){
+    const err=document.getElementById("erro");
+    err.style.display="block";
+    err.textContent=`Não foi possível carregar dados.json (${e.message}). Rode "python atualizar.py" ou verifique o GitHub Actions.`;
+    document.getElementById("database").textContent="sem dados";
+  }
+})();
+</script>
+</body>
+</html>
