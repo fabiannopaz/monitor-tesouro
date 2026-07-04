@@ -9,18 +9,20 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --papel:#F2F4F7;
-  --ficha:#FFFFFF;
-  --tinta:#0A1F44;
-  --tinta-2:#41506E;
-  --tinta-3:#8B95A8;
-  --linha:#D8DDE6;
-  --alta:#1B7A4A;
-  --alta-bg:#E5F2EB;
-  --queda:#CC092F;
-  --queda-bg:#FBE9ED;
-  --meta:#B7791F;
-  --meta-bg:#FCF3E3;
+  --papel:#0B0F17;
+  --ficha:#141A26;
+  --barra:#10192B;
+  --acento:#4C82F7;
+  --tinta:#E7ECF5;
+  --tinta-2:#AAB6C9;
+  --tinta-3:#6F7C90;
+  --linha:#262E3D;
+  --alta:#35C08A;
+  --alta-bg:rgba(53,192,138,.14);
+  --queda:#FF5A6E;
+  --queda-bg:rgba(255,90,110,.14);
+  --meta:#E0A83A;
+  --meta-bg:rgba(224,168,58,.14);
   --mono:"IBM Plex Mono",ui-monospace,monospace;
   --sans:"IBM Plex Sans",system-ui,sans-serif;
   --cond:"IBM Plex Sans Condensed",var(--sans);
@@ -30,7 +32,7 @@ html{-webkit-text-size-adjust:100%}
 body{background:var(--papel);color:var(--tinta);font-family:var(--sans);font-size:15px;line-height:1.45}
 a{color:inherit}
 
-header{background:var(--tinta);color:#fff;padding:14px 0}
+header{background:var(--barra);color:#fff;padding:14px 0;border-bottom:1px solid var(--linha)}
 .wrap{max-width:1060px;margin:0 auto;padding:0 20px}
 .header-row{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
 h1{font-family:var(--cond);font-weight:700;font-size:1.35rem;letter-spacing:.02em;text-transform:uppercase}
@@ -61,12 +63,12 @@ main{padding:26px 0 10px}
 .chart-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
 .ranges{display:flex;gap:4px}
 .ranges button{font-family:var(--cond);font-size:.72rem;font-weight:600;letter-spacing:.05em;color:var(--tinta-2);background:none;border:1px solid var(--linha);border-radius:5px;padding:3px 10px;cursor:pointer}
-.ranges button.on{background:var(--tinta);border-color:var(--tinta);color:#fff}
+.ranges button.on{background:var(--acento);border-color:var(--acento);color:#fff}
 .ranges button:focus-visible{outline:2px solid var(--tinta);outline-offset:2px}
 .hover-info{font-family:var(--mono);font-size:.76rem;color:var(--tinta-2);min-height:1.2em}
 .grafico{width:100%;height:190px;display:block;touch-action:pan-y}
 
-.f-alerta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 22px;border-top:1px dashed var(--linha);background:#FAFBFC;font-size:.82rem;color:var(--tinta-2)}
+.f-alerta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 22px;border-top:1px dashed var(--linha);background:rgba(255,255,255,.02);font-size:.82rem;color:var(--tinta-2)}
 .f-alerta label{font-family:var(--cond);font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:.7rem}
 .f-alerta input{font-family:var(--mono);font-size:.85rem;width:90px;padding:4px 8px;border:1px solid var(--linha);border-radius:5px;color:var(--tinta)}
 .f-alerta input:focus-visible{outline:2px solid var(--tinta);outline-offset:1px}
@@ -100,7 +102,7 @@ footer p{margin-bottom:4px}
 </main>
 
 <footer class="wrap">
-  <p><b>Fonte:</b> Tesouro Transparente / Secretaria do Tesouro Nacional — dados abertos oficiais (taxas de abertura, atualização em dias úteis, defasagem de ~1 dia útil).</p>
+  <p><b>Fonte:</b> Tesouro Direto (tesourodireto.com.br) — taxas atuais de compra e resgate, coletadas diretamente do site oficial.</p>
   <p>Taxa de compra = rentabilidade ao investir. Taxa de resgate = venda antecipada. Renda+ 2065: conversão em 15/12/2065; o dataset registra o vencimento da última parcela (15/12/2084). Variações em bps sobre a taxa de compra.</p>
 </footer>
 
@@ -258,7 +260,7 @@ function montaFicha(t){
   }catch(e){
     const err=document.getElementById("erro");
     err.style.display="block";
-    err.textContent=`Não foi possível carregar dados.json (${e.message}). Rode "python atualizar.py" ou verifique o GitHub Actions.`;
+    err.textContent=`Não foi possível carregar dados.json (${e.message}). Rode o coletor local (coletar_tesouro.py).`;
     document.getElementById("database").textContent="sem dados";
   }
 })();
